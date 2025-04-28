@@ -1,0 +1,26 @@
+{
+  "name": "smartbot",
+  "version": "1.0.0",
+  "description": "SmartBot é um agente de extrema necessidade para seu negócio se você está procurando por uma solução de otimizar e modernizar seu negócio!",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pedropaivaf/SmartBot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pedropaivaf/SmartBot/issues"
+  },
+  "homepage": "https://github.com/pedropaivaf/SmartBot#readme",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.17.16",
+    "axios": "^1.9.0",
+    "dotenv": "^16.5.0",
+    "qrcode-terminal": "^0.12.0"
+  }
+}
