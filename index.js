@@ -7,13 +7,14 @@ const { salvarAgendamento, carregarAgendamentos, carregarHorariosDisponiveis } =
 
 const agendando = {};
 const cancelando = {};
+let sock; // variável global
 
 async function startBot() {
     console.log('Conectando com a versão mais recente do Baileys...');
 
     const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
 
-    const sock = makeWASocket({
+    sock = makeWASocket({
         auth: state,
         printQRInTerminal: false,
     });
@@ -118,7 +119,7 @@ async function startBot() {
                     const endTime = parseInt(end.replace("h", ""));
                     const chosenTime = parseInt(horarioNormalizado.replace("h", ""));
 
-                    return chosenTime >= startTime && chosenTime < endTime;
+                    return chosenTime >= startTime && chosenTime <= endTime;
                 });
 
                 if (!intervaloValido) {
@@ -136,20 +137,28 @@ async function startBot() {
 
             if (agendando[from]?.esperandoConfirmacao) {
                 if (textoNormalizado === 'sim') {
+                    const dataAgendamento = new Date(); // ✅ Corrigido aqui
+            
                     salvarAgendamento({
                         telefone: from,
                         servico: agendando[from].servico,
                         horario: agendando[from].horario,
-                        data: new Date().toISOString()
+                        data: dataAgendamento.toISOString()
                     });
-                    await sock.sendMessage(from, { text: `✅ Agendamento confirmado para *${agendando[from].servico}* às *${agendando[from].horario}*!` });
+            
+                    await sock.sendMessage(from, {
+                        text: `✅ Agendamento confirmado para *${agendando[from].servico}* às *${agendando[from].horario}*!`
+                    });
+            
                     delete agendando[from];
                 } else {
-                    await sock.sendMessage(from, { text: "❌ Agendamento cancelado. Se quiser tentar novamente, digite 1." });
+                    await sock.sendMessage(from, {
+                        text: "❌ Agendamento cancelado. Se quiser tentar novamente, digite 1."
+                    });
                     delete agendando[from];
                 }
                 return;
-            }
+            }            
 
             // Menu principal
             if (textoNormalizado.includes('quem é você') || textoNormalizado.includes('com quem eu falo')) {
@@ -210,6 +219,7 @@ function enviarLembrete() {
 
         if (diferenca > 0 && diferenca <= 30 * 60 * 1000) {
             setTimeout(() => {
+                if (!sock) return; // evita erro caso ainda não tenha conectado
                 sock.sendMessage(agendamento.telefone, {
                     text: `🕒 Lembrete de agendamento:\n*${agendamento.servico}* às *${agendamento.horario}* em 30 minutos! Não perca!`
                 });
