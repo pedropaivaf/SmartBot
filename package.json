@@ -20,8 +20,10 @@
   },
   "homepage": "https://github.com/pedropaivaf/SmartBot#readme",
   "dependencies": {
-    "@whiskeysockets/baileys": "^6.17.16",
+    "@whiskeysockets/baileys": "^6.7.18",
     "axios": "^1.9.0",
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
     "dotenv": "^16.5.0",
     "qrcode-terminal": "^0.12.0"
   },
