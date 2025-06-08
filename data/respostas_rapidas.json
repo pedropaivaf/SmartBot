@@ -1,0 +1,165 @@
+[
+  {
+    "categoria": "geografia",
+    "pergunta": [
+      "quantos estados tem o brasil",
+      "quantos estados o brasil tem"
+    ],
+    "resposta": "🇧🇷 O Brasil tem 26 estados e 1 Distrito Federal, totalizando 27 unidades federativas."
+  },
+  {
+    "categoria": "geografia",
+    "pergunta": [
+      "quantos países existem",
+      "quantos países tem no mundo",
+      "quantos paises existem no mundo"
+    ],
+    "resposta": "🌍 Existem 195 países no mundo: 193 reconhecidos pela ONU e 2 observadores (Vaticano e Palestina)."
+  },
+  {
+    "categoria": "geografia",
+    "pergunta": [
+      "maior país do mundo",
+      "qual o maior país do mundo",
+      "maior pais do mundo"
+    ],
+    "resposta": "🌎 O maior país do mundo em área territorial é a Rússia."
+  },
+  {
+    "categoria": "geografia",
+    "pergunta": [
+      "menor país do mundo",
+      "qual o menor país do mundo",
+      "menor pais do mundo"
+    ],
+    "resposta": "🗺️ O menor país do mundo é o Vaticano."
+  },
+  {
+    "categoria": "ciências",
+    "pergunta": [
+      "quais são as cores primárias",
+      "cores primarias",
+      "cores básicas"
+    ],
+    "resposta": "🎨 As cores primárias são vermelho, azul e amarelo."
+  },
+  {
+    "categoria": "ciências",
+    "pergunta": [
+      "formas geometricas",
+      "formas geométricas",
+      "quais são as formas geométricas",
+      "formas básicas",
+      "formas básicas"
+    ],
+    "resposta": "📐 Algumas formas geométricas básicas são: círculo, quadrado, triângulo, retângulo e losango."
+  },
+  {
+    "categoria": "geografia",
+    "pergunta": [
+      "quais são as cores da bandeira",
+      "cores da bandeira do brasil",
+      "bandeira do brasil"
+    ],
+    "resposta": "🇧🇷 A bandeira do Brasil é verde, amarela, azul e branca."
+  },
+  {
+    "categoria": "ciências",
+    "pergunta": [
+      "quantos planetas",
+      "quantos planetas existem",
+      "planetas do sistema solar"
+    ],
+    "resposta": "🪐 O Sistema Solar tem 8 planetas: Mercúrio, Vênus, Terra, Marte, Júpiter, Saturno, Urano e Netuno."
+  },
+  {
+    "categoria": "história",
+    "pergunta": [
+      "quando foi a independência do brasil",
+      "independência do brasil",
+      "data da independência do brasil"
+    ],
+    "resposta": "📅 A Independência do Brasil foi proclamada em 7 de setembro de 1822."
+  },
+  {
+    "categoria": "história",
+    "pergunta": [
+      "quando foi a primeira guerra mundial",
+      "data da primeira guerra mundial"
+    ],
+    "resposta": "⚔️ A Primeira Guerra Mundial começou em 28 de julho de 1914 e terminou em 11 de novembro de 1918."
+  },
+  {
+    "categoria": "história",
+    "pergunta": [
+      "quando começou a segunda guerra mundial",
+      "data da segunda guerra mundial"
+    ],
+    "resposta": "⚔️ A Segunda Guerra Mundial começou em 1º de setembro de 1939."
+  },
+  {
+    "categoria": "curiosidades",
+    "pergunta": [
+      "qual o animal mais rápido do mundo",
+      "animal mais rápido"
+    ],
+    "resposta": "🐆 O animal terrestre mais rápido do mundo é o guepardo (ou chita), podendo atingir até 120 km/h."
+  },
+  {
+    "categoria": "curiosidades",
+    "pergunta": [
+      "qual o maior animal do mundo",
+      "maior animal do mundo"
+    ],
+    "resposta": "🐋 O maior animal do mundo é a baleia-azul."
+  },
+  {
+    "categoria": "curiosidades",
+    "pergunta": [
+      "qual o animal mais venenoso do mundo",
+      "animal mais venenoso"
+    ],
+    "resposta": "🦑 O animal mais venenoso do mundo é a água-viva Irukandji."
+  },
+  {
+    "categoria": "tecnologia",
+    "pergunta": [
+      "o que é inteligência artificial",
+      "definição de inteligência artificial"
+    ],
+    "resposta": "🤖 Inteligência Artificial (IA) é a simulação de processos de inteligência humana por sistemas computacionais."
+  },
+  {
+    "categoria": "tecnologia",
+    "pergunta": [
+      "o que é machine learning",
+      "definição de machine learning"
+    ],
+    "resposta": "📊 Machine Learning é um subcampo da IA que permite que sistemas aprendam e melhorem com a experiência sem serem explicitamente programados."
+  },
+  {
+    "categoria": "tecnologia",
+    "pergunta": [
+      "o que é blockchain",
+      "definição de blockchain"
+    ],
+    "resposta": "🔗 Blockchain é uma tecnologia de registro distribuído que garante a integridade e a transparência das transações digitais."
+  },
+  {
+    "categoria": "tecnologia",
+    "pergunta": [
+      "o que é cloud computing",
+      "definição de cloud computing"
+    ],
+    "resposta": "☁️ Cloud Computing é a entrega de serviços de computação pela internet, permitindo acesso a recursos como armazenamento e processamento sem necessidade de infraestrutura local."
+  },
+  {
+    "categoria": "geografia",
+    "pergunta": [
+      "quais são as cores da bandeira",
+      "cores da bandeira do brasil",
+      "bandeira do brasil"
+    ],
+    "resposta": "🇧🇷 A bandeira do Brasil é verde, amarela, azul e branca."
+  }
+]

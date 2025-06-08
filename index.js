@@ -1,33 +1,38 @@
-// index.js
 const { makeWASocket, DisconnectReason, useMultiFileAuthState } = require('@whiskeysockets/baileys');
 const { Boom } = require('@hapi/boom');
 const fs = require('fs');
-const qrcode = require('qrcode-terminal');
+
+const caminhoSemResposta = './data/perguntasaindasemresp.json';
+const respostasRapidas = require('./data/respostas_rapidas.json');
+const aguardandoIA = {};
 const { perguntarIA } = require('./services/huggingfaceService');
-const { salvarAgendamento, carregarAgendamentos, carregarHorariosDisponiveisParaData, gerarMensagemHorarios } = require('./services/agendamentoService');
+const qrcode = require('qrcode-terminal');
+const {
+    salvarAgendamento,
+    carregarAgendamentos,
+    carregarHorariosDisponiveisParaData,
+    gerarMensagemHorarios
+} = require('./services/agendamentoService');
 const { parse, isValid } = require("date-fns");
-const { zonedTimeToUtc, utcToZonedTime } = require('date-fns-tz');
 
 const agendando = {};
 const cancelando = {};
+const historico = {};
 let sock;
 
 async function startBot() {
-    console.log('Conectando com a versão mais recente do Baileys...');
     const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
-
     sock = makeWASocket({ auth: state, printQRInTerminal: false });
     sock.ev.on('creds.update', saveCreds);
-
     sock.ev.on('connection.update', (update) => {
         const { connection, lastDisconnect, qr } = update;
         if (qr) qrcode.generate(qr, { small: true });
         if (connection === 'close') {
             const shouldReconnect = (lastDisconnect.error)?.output?.statusCode !== DisconnectReason.loggedOut;
-            console.log('Conexão fechada.', lastDisconnect.error, 'Reconectando?', shouldReconnect);
             if (shouldReconnect) startBot();
         } else if (connection === 'open') {
             console.log('✅ Bot conectado com sucesso!');
+            console.log("🕒 Fuso/Data:", new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }));
         }
     });
 
@@ -37,21 +42,96 @@ async function startBot() {
 
         const from = msg.key.remoteJid;
         const text = msg.message.conversation || msg.message.extendedTextMessage?.text;
-        console.log(`📩 Mensagem recebida de ${from}: "${text}"`);
         if (!text) return;
 
         const textoNormalizado = text.toLowerCase().trim();
 
-        if (textoNormalizado === 'cancelar') {
-            delete agendando[from];
-            delete cancelando[from];
-            await sock.sendMessage(from, { text: "Ação cancelada" });
+        // 🔁 Primeiro: trata comandos do menu (1 a 4)
+        if (['1', '2', '3', '4'].includes(textoNormalizado)) {
+            switch (textoNormalizado) {
+                case '1':
+                    agendando[from] = { esperandoNome: true };
+                    await sock.sendMessage(from, { text: 'Qual o seu nome completo?' });
+                    return;
+
+                case '2':
+                    await sock.sendMessage(from, { text: '👩‍💼 Um atendente falará com você em breve.' });
+                    return;
+
+                case '3': {
+                    const agendamentos = carregarAgendamentos().filter(a => a.telefone === from);
+                    if (agendamentos.length === 0) {
+                        await sock.sendMessage(from, { text: "❌ Você não possui agendamentos ativos no momento." });
+                    } else {
+                        let resposta = "🗓️ *Seus agendamentos:*\n\n";
+                        agendamentos.forEach(a => {
+                            resposta += `➡️ ${a.horario} - ${a.nome}\n`;
+                        });
+                        resposta += "\nDigite o horário que deseja cancelar:";
+                        cancelando[from] = true;
+                        await sock.sendMessage(from, { text: resposta });
+                    }
+                    return;
+                }
+
+                case '4': {
+                    const agendamentos = carregarAgendamentos().filter(a => a.telefone === from);
+                    if (agendamentos.length === 0) {
+                        await sock.sendMessage(from, { text: "❌ Você não possui agendamentos ativos no momento para remarcar." });
+                    } else {
+                        let resposta = "🗓️ *Seus agendamentos:*\n\n";
+                        agendamentos.forEach(a => {
+                            resposta += `➡️ ${a.horario} - ${a.nome}\n`;
+                        });
+                        resposta += "\nTodos serão cancelados para remarcar. Digite seu nome novamente!:";
+
+                        const novosAgendamentos = carregarAgendamentos().filter(ag => ag.telefone !== from);
+                        fs.writeFileSync('./data/agendamentos.json', JSON.stringify(novosAgendamentos, null, 2));
+
+                        agendando[from] = { esperandoNome: true };
+                        await sock.sendMessage(from, { text: resposta });
+                    }
+                    return;
+                }
+            }
+        }
+        console.log('──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────');
+
+        console.log(`📩 Mensagem recebida de ${from}: ${text}`);
+        console.log('──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────');
+
+        historico[from] = historico[from] || [];
+        historico[from].push(text);
+        if (historico[from].length > 6) historico[from].shift();
+        const contexto = historico[from].join('\n');
+
+        const palavrasBloqueadas = ['sexo', 'nudez', 'bomba', 'droga', 'matar', 'suicídio'];
+        if (palavrasBloqueadas.some(p => textoNormalizado.includes(p))) {
+            const resposta = "🚫 Desculpe, não posso responder esse tipo de pergunta.";
+            console.log(`❌ Resposta bloqueada para ${from}: ${resposta}`);
+            await sock.sendMessage(from, { text: resposta });
+            return;
+        }
+
+        const padraoSaudacao = /\b(oi|ol[áa]|fala|e[ \-]?a[íi]|bom dia|boa tarde|boa noite|chat(bot)?|smartbot)\b/i;
+
+        if (padraoSaudacao.test(textoNormalizado)) {
+            const respostaSaudacao = "👋 Olá! Sou o SmartBot 🤖, um chat interativo 💬 com integração de IA para dúvidas e agendamentos. Como posso te ajudar? Digite (agendar) para agendar um horário";
+            console.log(`🙋 Saudação detectada de ${from}`);
+            await sock.sendMessage(from, { text: respostaSaudacao });
+            return;
+        }
+
+        const palavrasAgendamento = ['agendar', 'agendamento', 'marcar', 'marcar horário', 'marcar horario', 'quero agendar', 'preciso marcar'];
+        if (palavrasAgendamento.some(p => textoNormalizado.includes(p))) {
+            console.log(`📆 Menu de agendamento exibido para ${from}`);
             await sock.sendMessage(from, {
-                text: 'Escolha uma opção:\n\n1️⃣ Agendar horário\n2️⃣ Falar com atendente\n3️⃣ Cancelar Agendamento\n4️⃣ Remarcar Agendamento'
+                text: '🗓️ O que você deseja fazer?\n\n1️⃣ Agendar horário\n2️⃣ Falar com atendente\n3️⃣ Cancelar Agendamento\n4️⃣ Remarcar Agendamento'
             });
             return;
         }
 
+        // Fluxo de agendamento
         if (agendando[from]?.esperandoNome) {
             agendando[from].nome = textoNormalizado;
             agendando[from].esperandoNome = false;
@@ -96,7 +176,7 @@ async function startBot() {
             agendando[from].esperandoConfirmacao = true;
 
             await sock.sendMessage(from, {
-                text: `✅ *Deseja confirmar o agendamento?*\n\n🛎️ *Nome:* ${agendando[from].nome}\n📅 *Data:* ${agendando[from].data.toLocaleDateString()}\n⏰ *Horário:* ${agendando[from].horario}\n\nDigite: *sim* ou *não*`
+                text: `✅ Deseja confirmar o agendamento?\n\n🛎️ *Nome:* ${agendando[from].nome}\n📅 *Data:* ${agendando[from].data.toLocaleDateString()}\n⏰ *Horário:* ${agendando[from].horario}\n\nDigite: *sim* ou *não*`
             });
             return;
         }
@@ -121,108 +201,131 @@ async function startBot() {
             return;
         }
 
-        // Menu personalizado por palavra-chave
-        if (
-            textoNormalizado.includes("marcar") ||
-            textoNormalizado.includes("agendar") ||
-            textoNormalizado.includes("horário") ||
-            textoNormalizado.includes("horario")
-        ) {
-            await sock.sendMessage(from, {
-                text: 'O que você deseja fazer?\n\n1️⃣ Agendar horário\n2️⃣ Falar com atendente\n3️⃣ Cancelar Agendamento\n4️⃣ Remarcar Agendamento'
-            });
+        if (cancelando[from]) {
+            const textoLimpo = textoNormalizado.replace(/[^\dh]/gi, '').trim(); // Ex: '10h30'
+            const agendamentos = carregarAgendamentos();
+            const novos = agendamentos.filter(ag =>
+                !(ag.telefone === from && ag.horario.replace(/[:]/g, 'h') === textoLimpo)
+            );
+
+            if (novos.length === agendamentos.length) {
+                await sock.sendMessage(from, {
+                    text: "❌ Nenhum agendamento encontrado com esse horário. Verifique e tente novamente."
+                });
+            } else {
+                fs.writeFileSync('./data/agendamentos.json', JSON.stringify(novos, null, 2));
+                await sock.sendMessage(from, {
+                    text: `✅ Agendamento das ${textoLimpo} cancelado com sucesso.`
+                });
+            }
+
+            delete cancelando[from];
             return;
         }
 
-        // Menu principal
-        if (textoNormalizado.includes('quem é você') || textoNormalizado.includes('com quem eu falo')) {
-            await sock.sendMessage(from, { text: 'Sou o SmartBot, ferramenta de agendamento e suporte!' });
-        } else if (textoNormalizado === 'oi' || textoNormalizado === 'olá') {
-            await sock.sendMessage(from, { text: 'Olá! 👋 Como posso te ajudar hoje?\n\n1️⃣ Agendar horário\n2️⃣ Falar com atendente\n3️⃣ Cancelar Agendamento\n4️⃣ Remarcar Agendamento' });
-        } else if (textoNormalizado === '1') {
-            agendando[from] = { esperandoNome: true };
-            await sock.sendMessage(from, { text: 'Qual o seu nome completo?' });
-        } else if (textoNormalizado === '2') {
-            await sock.sendMessage(from, { text: '👩‍💼 Um atendente falará com você em breve.' });
-        } else if (textoNormalizado === '3') {
-            const agendamentos = carregarAgendamentos().filter(a => a.telefone === from);
-            if (agendamentos.length === 0) {
-                await sock.sendMessage(from, { text: "❌ Você não possui agendamentos ativos no momento." });
-            } else {
-                let resposta = "🗓️ *Seus agendamentos:*\n\n";
-                agendamentos.forEach(a => {
-                    resposta += `➡️ ${a.horario} - ${a.nome}\n`;
-                });
-                resposta += "\nDigite o horário que deseja cancelar:";
+        // Evita cair na IA se estiver em fluxo de agendamento ou cancelamento
+        if (agendando[from] || cancelando[from]) return;
 
-                cancelando[from] = true;
+        if (aguardandoIA[from]) {
+            if (['sim', 'pode', 'ok'].includes(textoNormalizado)) {
+                delete aguardandoIA[from];
+                const respostaIA = await perguntarIA(contexto);
+
+                if (respostaIA) {
+                    // Limpeza de introduções e floreios
+                    let respostaFinal = respostaIA
+                        .replace(/^.*?(embora|como ia|no contexto|gostaria de ajudar|durante a noite|antes de responder|sou uma ia|posso ajudar|estou aqui para)/i, '')
+                        .replace(/(com assistente|enquanto ia).+?[,.:]/gi, '')
+                        .trim();
+
+                    // Se for pergunta, escolhe uma frase direta e com verbo informativo
+                    if (text.trim().endsWith('?')) {
+                        const frases = respostaFinal
+                            .split(/[.!?]/)
+                            .map(f => f.trim())
+                            .filter(f =>
+                                f.length >= 40 &&
+                                f.length <= 250 &&
+                                /^[A-ZÁÉÍÓÚÀÂÊÔÃÕ]/.test(f) &&
+                                /\b(é|foi|está|são|tem|possui|conhecido|reconhecido)\b/i.test(f)
+                            );
+
+                        respostaFinal = frases[0] || respostaFinal.split(/[.!?]/)[0].trim();
+                    }
+
+                    // Saudação baseada na hora
+                    const saudacao = (() => {
+                        const hora = new Date().getHours();
+                        if (hora >= 6 && hora < 12) return "Bom dia!";
+                        if (hora >= 12 && hora < 18) return "Boa tarde!";
+                        return "Boa noite!";
+                    })();
+
+                    // Montagem final com saudação
+                    respostaFinal = `${saudacao} ${respostaFinal}`.replace(/\.\.+$/, '.').trim();
+                    respostaFinal = respostaFinal.replace(/[\.\!]*$/, '.');
+
+                    console.log(`🤖 Resposta da IA para ${from}: ${respostaFinal}`);
+                    await sock.sendMessage(from, { text: respostaFinal });
+                    return;
+                } else {
+                    const falha = "🤖 Desculpe, a IA não respondeu no momento.";
+                    console.log(`⚠️ Falha da IA para ${from}: ${falha}`);
+                    await sock.sendMessage(from, { text: falha });
+                    return;
+                }
+            } else if (['não', 'nao'].includes(textoNormalizado)) {
+                delete aguardandoIA[from];
+                const resposta = "✅ Tudo bem, se precisar é só chamar!";
+                console.log(`ℹ️ Rejeição de IA por ${from}: ${resposta}`);
                 await sock.sendMessage(from, { text: resposta });
-            }
-        } else if (textoNormalizado === '4') {
-            const agendamentos = carregarAgendamentos().filter(a => a.telefone === from);
-            if (agendamentos.length === 0) {
-                await sock.sendMessage(from, { text: "❌ Você não possui agendamentos ativos no momento para remarcar." });
-            } else {
-                let resposta = "🗓️ *Seus agendamentos:*\n\n";
-                agendamentos.forEach(a => {
-                    resposta += `➡️ ${a.horario} - ${a.nome}\n`;
-                });
-                resposta += "\nTodos serão cancelados para remarcar. Digite seu nome novamente!:";
-                const novosAgendamentos = carregarAgendamentos().filter(ag => !(ag.telefone === from));
-                fs.writeFileSync('./data/agendamentos.json', JSON.stringify(novosAgendamentos, null, 2));
-                agendando[from] = { esperandoNome: true };
-                await sock.sendMessage(from, { text: resposta });
-            }
-        } else {
-            console.log(`📡 Enviando mensagem para a IA: "${text}"`);
-            const respostaIA = await perguntarIA(text);
-
-            if (respostaIA) {
-                const saudacao = (() => {
-                    const hora = new Date().getHours();
-                    if (hora >= 6 && hora < 12) return "Bom dia!";
-                    if (hora >= 12 && hora < 18) return "Boa tarde!";
-                    return "Boa noite!";
-                })();
-
-                const respostaFinal = respostaIA.toLowerCase().startsWith("bom dia") ||
-                    respostaIA.toLowerCase().startsWith("boa tarde") ||
-                    respostaIA.toLowerCase().startsWith("boa noite")
-                    ? respostaIA
-                    : `${saudacao} ${respostaIA}`;
-
-                await sock.sendMessage(from, { text: respostaFinal });
-                console.log(`🤖 Resposta da IA enviada para ${from}: ${respostaFinal}`);
-            } else {
-                await sock.sendMessage(from, { text: "Desculpe, não consegui entender sua pergunta." });
-                console.log(`⚠️ A IA não retornou nenhuma resposta para: "${text}"`);
+                return;
             }
         }
+
+        const respostaDireta = respostasRapidas.find(item =>
+            item.pergunta.some(p => textoNormalizado.includes(p))
+        );
+
+        if (respostaDireta) {
+            console.log(`📚 Resposta rápida encontrada para ${from}: ${respostaDireta.resposta}`);
+            await sock.sendMessage(from, { text: respostaDireta.resposta });
+            return;
+        }
+
+        const novaPergunta = {
+            usuario: from,
+            mensagem: text,
+            data_hora: new Date().toISOString()
+        };
+
+        try {
+            let jsonExistente = [];
+            if (fs.existsSync(caminhoSemResposta)) {
+                jsonExistente = JSON.parse(fs.readFileSync(caminhoSemResposta));
+                if (!Array.isArray(jsonExistente)) jsonExistente = [];
+            }
+            jsonExistente.push(novaPergunta);
+            fs.writeFileSync(caminhoSemResposta, JSON.stringify(jsonExistente, null, 2));
+        } catch (err) {
+            console.error("❌ Erro ao salvar pergunta sem resposta:", err);
+        }
+
+        aguardandoIA[from] = true;
+        const aviso = "🤔 Essa pergunta ainda não está no meu banco de respostas rápidas. Deseja que eu tente com a IA? (responda *sim* ou *não*)";
+        console.log(`💬 Pergunta não encontrada para ${from}. Perguntando se deseja usar IA.`);
+        await sock.sendMessage(from, { text: aviso });
     });
 }
 
-function enviarLembrete() {
+setInterval(() => {
     const agendamentos = carregarAgendamentos();
     const agora = new Date();
-    const fusoHorario = 'America/Sao_Paulo';
-
-    let agoraNoFuso;
-    try {
-        agoraNoFuso = typeof utcToZonedTime === 'function' ? utcToZonedTime(agora, fusoHorario) : new Date(agora.toLocaleString("pt-BR", { timeZone: fusoHorario }));
-    } catch (e) {
-        console.warn("⚠️ utcToZonedTime não disponível, usando fallback.");
-        agoraNoFuso = new Date(agora.toLocaleString("pt-BR", { timeZone: fusoHorario }));
-    }
+    const agoraNoFuso = new Date(agora.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }));
 
     agendamentos.forEach(agendamento => {
-        let agendamentoNoFuso;
-        try {
-            const dataAgendada = new Date(agendamento.data);
-            agendamentoNoFuso = typeof utcToZonedTime === 'function' ? utcToZonedTime(dataAgendada, fusoHorario) : new Date(dataAgendada.toLocaleString("pt-BR", { timeZone: fusoHorario }));
-        } catch (e) {
-            agendamentoNoFuso = new Date(agendamento.data);
-        }
-
+        const dataAgendada = new Date(agendamento.data);
+        const agendamentoNoFuso = new Date(dataAgendada.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }));
         const diferenca = agendamentoNoFuso - agoraNoFuso;
 
         if (diferenca > 0 && diferenca <= 30 * 60 * 1000) {
@@ -234,9 +337,7 @@ function enviarLembrete() {
             }, diferenca);
         }
     });
-}
-
-setInterval(enviarLembrete, 60 * 1000);
+}, 60 * 1000);
 
 startBot().then(() => {
     console.log('🟢 Tudo pronto! O bot está funcionando com agendamento e IA ✅');
