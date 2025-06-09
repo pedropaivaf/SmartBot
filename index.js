@@ -234,8 +234,9 @@ async function startBot() {
 
         if (aguardandoIA[from]) {
             if (['sim', 'pode', 'ok'].includes(textoNormalizado)) {
+                const perguntaOriginal = aguardandoIA[from]?.ultimaPergunta || text;
                 delete aguardandoIA[from];
-                const respostaIA = await perguntarIA(text);
+                const respostaIA = await perguntarIA(perguntaOriginal);
 
                 if (respostaIA) {
                     // Limpeza de introduções e floreios
@@ -317,7 +318,7 @@ async function startBot() {
             console.error("❌ Erro ao salvar pergunta sem resposta:", err);
         }
 
-        aguardandoIA[from] = true;
+        aguardandoIA[from] = { ultimaPergunta: text };
         const aviso = "🤔 Essa pergunta ainda não está no meu banco de respostas rápidas. Deseja que eu tente com a IA? (responda *sim* ou *não*)";
         console.log(`💬 Pergunta não encontrada para ${from}. Perguntando se deseja usar IA.`);
         await sock.sendMessage(from, { text: aviso });

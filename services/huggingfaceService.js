@@ -62,7 +62,11 @@ function limparResposta(texto, saudacao) {
 
 async function perguntarIA(mensagem) {
   const saudacao = saudacaoPorHorario();
-  const prompt = `<|system|>\nVocê é um assistente educado, simpático e objetivo. Agora são ${horaAtualFormatada()} e estamos na ${periodoAtual()}.\n<|user|>\n${mensagem}\n<|assistant|>`;
+  const prompt = `<|system|>
+Responda de forma curta, direta e precisa. Apenas responda à pergunta sem rodeios.
+<|user|>
+${mensagem}
+<|assistant|>`;
   console.log('📝 Prompt enviado à IA:', prompt);
 
   for (const modelo of MODELOS) {
