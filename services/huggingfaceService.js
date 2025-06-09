@@ -9,6 +9,8 @@ const HEADERS = {
 const TIMEOUT = 60000;
 
 const MODELOS = [
+  "HuggingFaceH4/zephyr-7b-beta",
+  "google/gemma-1.1-7b-it",
   "microsoft/Phi-3.5-mini-instruct"
 ];
 
