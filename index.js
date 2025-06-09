@@ -103,7 +103,6 @@ async function startBot() {
         historico[from] = historico[from] || [];
         historico[from].push(text);
         if (historico[from].length > 6) historico[from].shift();
-        const contexto = historico[from].join('\n');
 
         const palavrasBloqueadas = ['sexo', 'nudez', 'bomba', 'droga', 'matar', 'suicídio'];
         if (palavrasBloqueadas.some(p => textoNormalizado.includes(p))) {
@@ -235,8 +234,9 @@ async function startBot() {
 
         if (aguardandoIA[from]) {
             if (['sim', 'pode', 'ok'].includes(textoNormalizado)) {
+                const perguntaOriginal = aguardandoIA[from]?.ultimaPergunta || text;
                 delete aguardandoIA[from];
-                const respostaIA = await perguntarIA(contexto);
+                const respostaIA = await perguntarIA(perguntaOriginal);
 
                 if (respostaIA) {
                     // Limpeza de introduções e floreios
@@ -318,7 +318,7 @@ async function startBot() {
             console.error("❌ Erro ao salvar pergunta sem resposta:", err);
         }
 
-        aguardandoIA[from] = true;
+        aguardandoIA[from] = { ultimaPergunta: text };
         const aviso = "🤔 Essa pergunta ainda não está no meu banco de respostas rápidas. Deseja que eu tente com a IA? (responda *sim* ou *não*)";
         console.log(`💬 Pergunta não encontrada para ${from}. Perguntando se deseja usar IA.`);
         await sock.sendMessage(from, { text: aviso });
