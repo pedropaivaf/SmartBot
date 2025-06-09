@@ -44,7 +44,7 @@ function horaAtualFormatada() {
   });
 }
 
-function limparResposta(texto, saudacao) {
+function limparResposta(texto) {
   const frases = texto
     .replace(/<\|.*?\|>/g, '')
     .replace(/^bom dia|^boa tarde|^boa noite/i, '')
@@ -57,7 +57,7 @@ function limparResposta(texto, saudacao) {
     .slice(0, 3);
 
   const respostaFinal = frases.join('. ').trim().slice(0, 320);
-  return `${saudacao.charAt(0).toUpperCase() + saudacao.slice(1)}! ${respostaFinal}.`;
+  return `${respostaFinal}.`;
 }
 
 async function perguntarIA(mensagem) {
@@ -94,7 +94,7 @@ ${mensagem}
         continue;
       }
 
-      return limparResposta(resposta, saudacao);
+      return limparResposta(resposta);
 
     } catch (err) {
       console.warn(`⚠️ Modelo falhou (${modelo}): ${err.response?.status || ''} - ${err.message}`);
