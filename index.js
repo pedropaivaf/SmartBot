@@ -165,7 +165,14 @@ async function startBot() {
         }
 
         if (agendando[from]?.esperandoHorario) {
-            const horarioEscolhido = textoNormalizado.replace(":", "h");
+            let horarioEscolhido = textoNormalizado
+                .replace(":", "h")
+                .replace(/h00$/, "h");
+
+            if (/^\d{1,2}$/.test(horarioEscolhido)) {
+                horarioEscolhido += "h";
+            }
+
             if (!agendando[from].horariosDisponiveis.includes(horarioEscolhido)) {
                 await sock.sendMessage(from, { text: "❌ Horário inválido ou já agendado. Escolha um horário disponível." });
                 return;
