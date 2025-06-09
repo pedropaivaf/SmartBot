@@ -6,7 +6,7 @@ const HEADERS = {
   Authorization: `Bearer ${HUGGINGFACE_API_TOKEN}`,
   'Content-Type': 'application/json'
 };
-const TIMEOUT = 60000;
+const TIMEOUT = 90000;
 
 const MODELOS = [
   "HuggingFaceH4/zephyr-7b-beta",
