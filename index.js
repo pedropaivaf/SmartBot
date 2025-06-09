@@ -46,6 +46,15 @@ async function startBot() {
 
         const textoNormalizado = text.toLowerCase().trim();
 
+        if (textoNormalizado === 'cancelar') {
+            delete agendando[from];
+            delete cancelando[from];
+            delete aguardandoIA[from];
+            await sock.sendMessage(from, { text: "❌ Fluxo cancelado com sucesso. Se precisar de algo, estou por aqui!" });
+            console.log(`🚫 Fluxo cancelado manualmente por ${from}`);
+            return;
+        }
+
         // 🔁 Primeiro: trata comandos do menu (1 a 4)
         if (['1', '2', '3', '4'].includes(textoNormalizado)) {
             switch (textoNormalizado) {
@@ -121,7 +130,29 @@ async function startBot() {
             return;
         }
 
-        const palavrasAgendamento = ['agendar', 'agendamento', 'marcar', 'marcar horário', 'marcar horario', 'quero agendar', 'preciso marcar'];
+        const palavrasAgendamento = [
+            'agendar',
+            'agendamento',
+            'agendar horário',
+            'agendar horario',
+            'marcar',
+            'marcar horário',
+            'marcar horario',
+            'quero agendar',
+            'preciso agendar',
+            'preciso marcar',
+            'agendamento online',
+            'agendamento por whatsapp',
+            'agendar consulta',
+            'marcar consulta',
+            'fazer agendamento',
+            'marcar horário agora',
+            'menu',
+            'horário disponível',
+            'ver horários',
+            'horário de atendimento'
+        ];
+
         if (palavrasAgendamento.some(p => textoNormalizado.includes(p))) {
             console.log(`📆 Menu de agendamento exibido para ${from}`);
             await sock.sendMessage(from, {

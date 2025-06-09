@@ -54,9 +54,9 @@ function limparResposta(texto, saudacao) {
     .split(/[.!?]/)
     .map(t => t.trim())
     .filter(Boolean)
-    .slice(0, 2);
+    .slice(0, 3);
 
-  const respostaFinal = frases.join('. ').trim().slice(0, 180);
+  const respostaFinal = frases.join('. ').trim().slice(0, 320);
   return `${saudacao.charAt(0).toUpperCase() + saudacao.slice(1)}! ${respostaFinal}.`;
 }
 
