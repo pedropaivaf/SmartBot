@@ -45,18 +45,25 @@ function horaAtualFormatada() {
 }
 
 function limparResposta(texto, saudacao) {
-  return texto
+  const frases = texto
     .replace(/<\|.*?\|>/g, '')
-    .replace(/^bom dia|^boa tarde|^boa noite/i, saudacao)
+    .replace(/^bom dia|^boa tarde|^boa noite/i, '')
     .replace(/Programar em Python.*/i, '')
     .replace(/\s{2,}/g, ' ')
     .trim()
-    .slice(0, 200);
+    .split(/[.!?]/)
+    .map(t => t.trim())
+    .filter(Boolean)
+    .slice(0, 2);
+
+  const respostaFinal = frases.join('. ').trim().slice(0, 180);
+  return `${saudacao.charAt(0).toUpperCase() + saudacao.slice(1)}! ${respostaFinal}.`;
 }
 
 async function perguntarIA(mensagem) {
   const saudacao = saudacaoPorHorario();
   const prompt = `<|system|>\nVocê é um assistente educado, simpático e objetivo. Agora são ${horaAtualFormatada()} e estamos na ${periodoAtual()}.\n<|user|>\n${mensagem}\n<|assistant|>`;
+  console.log('📝 Prompt enviado à IA:', prompt);
 
   for (const modelo of MODELOS) {
     try {

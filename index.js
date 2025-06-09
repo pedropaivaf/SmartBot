@@ -103,7 +103,6 @@ async function startBot() {
         historico[from] = historico[from] || [];
         historico[from].push(text);
         if (historico[from].length > 6) historico[from].shift();
-        const contexto = historico[from].join('\n');
 
         const palavrasBloqueadas = ['sexo', 'nudez', 'bomba', 'droga', 'matar', 'suicídio'];
         if (palavrasBloqueadas.some(p => textoNormalizado.includes(p))) {
@@ -236,7 +235,7 @@ async function startBot() {
         if (aguardandoIA[from]) {
             if (['sim', 'pode', 'ok'].includes(textoNormalizado)) {
                 delete aguardandoIA[from];
-                const respostaIA = await perguntarIA(contexto);
+                const respostaIA = await perguntarIA(text);
 
                 if (respostaIA) {
                     // Limpeza de introduções e floreios
