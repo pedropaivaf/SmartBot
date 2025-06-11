@@ -14,6 +14,20 @@ const MODELOS = [
   "microsoft/Phi-3.5-mini-instruct"
 ];
 
+// agradecimento aleatório
+function respostaAgradecimento() {
+  const respostas = [
+    'De nada! Tire dúvidas ou agende quando quiser!',
+    'Disponha! Estou aqui sempre que precisar.',
+    'Náo há de que! Qualquer coisa, só mandar!',
+    'Fico feliz em ajudar! Estou à disposição.',
+    'Tmj de + meu rei, qualquer coisa da um salve!',
+    'É um prazer ajudar! Me chame quando quiser.'
+  ];
+  return respostas[Math.floor(Math.random() * respostas.length)];
+}
+
+// ✅ FUNÇÃO DE SAUDAÇÃO
 function saudacaoPorHorario() {
   const hora = parseInt(new Date().toLocaleString('pt-BR', {
     timeZone: 'America/Sao_Paulo',
@@ -104,4 +118,8 @@ ${mensagem}
   return `${saudacao.charAt(0).toUpperCase() + saudacao.slice(1)}! Desculpe, estou com problemas para responder no momento.`;
 }
 
-module.exports = { perguntarIA };
+module.exports = {
+  perguntarIA,
+  saudacaoPorHorario,
+  respostaAgradecimento
+};

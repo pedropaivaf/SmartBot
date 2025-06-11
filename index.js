@@ -1,11 +1,11 @@
 const { makeWASocket, DisconnectReason, useMultiFileAuthState } = require('@whiskeysockets/baileys');
 const { Boom } = require('@hapi/boom');
 const fs = require('fs');
+const { perguntarIA, saudacaoPorHorario, respostaAgradecimento } = require('./services/huggingfaceService');
 
 const caminhoSemResposta = './data/perguntasaindasemresp.json';
 const respostasRapidas = require('./data/respostas_rapidas.json');
 const aguardandoIA = {};
-const { perguntarIA } = require('./services/huggingfaceService');
 const qrcode = require('qrcode-terminal');
 const {
     salvarAgendamento,
@@ -19,6 +19,10 @@ const agendando = {};
 const cancelando = {};
 const historico = {};
 let sock;
+
+function removerAcentos(texto) {
+    return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
 
 async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
@@ -44,7 +48,7 @@ async function startBot() {
         const text = msg.message.conversation || msg.message.extendedTextMessage?.text;
         if (!text) return;
 
-        const textoNormalizado = text.toLowerCase().trim();
+        const textoNormalizado = removerAcentos(text.toLowerCase().trim());
 
         if (textoNormalizado === 'cancelar') {
             delete agendando[from];
@@ -153,6 +157,33 @@ async function startBot() {
             'horário de atendimento'
         ];
 
+        const palavrasAgradecimento = [
+            'obrigado',
+            'obrigada',
+            'valeu',
+            'agradecido',
+            'muito obrigado',
+            'mt obg',
+            'vlw',
+            'obg',
+            'tmj',
+            'grato',
+            'grata',
+            'agradeco',
+            'e nois',    
+            'obrigadao',
+            'brigadao'
+        ];
+
+        // tratamento de agradecimento
+        if (palavrasAgradecimento.some(p => textoNormalizado.includes(p))) {
+            const resposta = respostaAgradecimento();
+            console.log(`🙏 Agradecimento detectado de ${from}: ${resposta}`);
+            await sock.sendMessage(from, { text: resposta });
+            return;
+        }
+
+        // tratamento de agendamento
         if (palavrasAgendamento.some(p => textoNormalizado.includes(p))) {
             console.log(`📆 Menu de agendamento exibido para ${from}`);
             await sock.sendMessage(from, {
