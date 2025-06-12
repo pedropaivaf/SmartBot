@@ -39,7 +39,7 @@ async function startBot() {
             console.log("🕒 Fuso/Data:", new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }));
         }
     });
-
+    // Evento para receber mensagens
     sock.ev.on('messages.upsert', async ({ messages }) => {
         const msg = messages[0];
         if (!msg.message || msg.key.fromMe) return;

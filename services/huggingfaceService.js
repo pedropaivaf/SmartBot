@@ -6,6 +6,7 @@ const HEADERS = {
   Authorization: `Bearer ${HUGGINGFACE_API_TOKEN}`,
   'Content-Type': 'application/json'
 };
+// Tempo máximo de espera para resposta da IA (90 segundos)
 const TIMEOUT = 90000;
 
 const MODELOS = [
@@ -27,7 +28,7 @@ function respostaAgradecimento() {
   return respostas[Math.floor(Math.random() * respostas.length)];
 }
 
-// ✅ FUNÇÃO DE SAUDAÇÃO
+// Função de saudação baseada no horário	
 function saudacaoPorHorario() {
   const hora = parseInt(new Date().toLocaleString('pt-BR', {
     timeZone: 'America/Sao_Paulo',
@@ -57,7 +58,7 @@ function horaAtualFormatada() {
     minute: '2-digit'
   });
 }
-
+// trata a resposta da IA, removendo excessos e mantendo o foco
 function limparResposta(texto) {
   const frases = texto
     .replace(/<\|.*?\|>/g, '')
@@ -73,7 +74,7 @@ function limparResposta(texto) {
   const respostaFinal = frases.join('. ').trim().slice(0, 320);
   return `${respostaFinal}.`;
 }
-
+// pergunta à IA, usa prompt para obter resposta direta e objetiva
 async function perguntarIA(mensagem) {
   const saudacao = saudacaoPorHorario();
   const prompt = `<|system|>
