@@ -15,6 +15,7 @@ const {
 } = require('./services/agendamentoService');
 const { parse, isValid } = require("date-fns");
 
+// Variáveis para controle de agendamentos e cancelamentos
 const agendando = {};
 const cancelando = {};
 const historico = {};
@@ -24,6 +25,7 @@ function removerAcentos(texto) {
     return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
+// Função para gerar saudação baseada no horário
 async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
     sock = makeWASocket({ auth: state, printQRInTerminal: false });
