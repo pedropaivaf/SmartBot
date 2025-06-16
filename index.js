@@ -127,7 +127,7 @@ async function startBot() {
             return;
         }
 
-        const padraoSaudacao = /\b(oi|ol[áa]|fala|e[ \-]?a[íi]|bom dia|boa tarde|boa noite|chat(bot)?|smartbot)\b/i;
+        const padraoSaudacao = /\b(oi|ol[áa]|fala|e[ \-]?a[íi]|salve|bom dia|boa tarde|boa noite|como vai|chat(bot)?|smartbot)\b/i;
 
         if (padraoSaudacao.test(textoNormalizado)) {
             const respostaSaudacao = "👋 Olá! Sou o SmartBot 🤖, um chat interativo 💬 com integração de IA para dúvidas e agendamentos. Como posso te ajudar? Digite (agendar) para agendar um horário";
@@ -172,7 +172,7 @@ async function startBot() {
             'grato',
             'grata',
             'agradeco',
-            'e nois',    
+            'e nois',
             'obrigadao',
             'brigadao'
         ];
@@ -308,6 +308,8 @@ async function startBot() {
                         .replace(/^.*?(embora|como ia|no contexto|gostaria de ajudar|durante a noite|antes de responder|sou uma ia|posso ajudar|estou aqui para)/i, '')
                         .replace(/(com assistente|enquanto ia).+?[,.:]/gi, '')
                         .trim();
+                    // Remove saudações duplicadas no início, como "Boa noite! Boa noite!"
+                    respostaFinal = respostaFinal.replace(/^(bom dia|boa tarde|boa noite)[\s!,.]*(bom dia|boa tarde|boa noite)?[\s!,.]*/i, '');
 
                     // Se for pergunta, escolhe uma frase direta e com verbo informativo
                     if (text.trim().endsWith('?')) {
@@ -323,19 +325,6 @@ async function startBot() {
 
                         respostaFinal = frases[0] || respostaFinal.split(/[.!?]/)[0].trim();
                     }
-
-                    // Saudação baseada na hora
-                    const saudacao = (() => {
-                        const hora = new Date().getHours();
-                        if (hora >= 6 && hora < 12) return "Bom dia!";
-                        if (hora >= 12 && hora < 18) return "Boa tarde!";
-                        return "Boa noite!";
-                    })();
-
-                    // Montagem final com saudação
-                    respostaFinal = `${saudacao} ${respostaFinal}`.replace(/\.\.+$/, '.').trim();
-                    respostaFinal = respostaFinal.replace(/[\.\!]*$/, '.');
-
                     console.log(`🤖 Resposta da IA para ${from}: ${respostaFinal}`);
                     await sock.sendMessage(from, { text: respostaFinal });
                     return;

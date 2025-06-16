@@ -60,20 +60,28 @@ function horaAtualFormatada() {
 }
 // trata a resposta da IA, removendo excessos e mantendo o foco
 function limparResposta(texto) {
-  const frases = texto
-    .replace(/<\|.*?\|>/g, '')
-    .replace(/^bom dia|^boa tarde|^boa noite/i, '')
-    .replace(/Programar em Python.*/i, '')
-    .replace(/\s{2,}/g, ' ')
-    .trim()
-    .split(/[.!?]/)
-    .map(t => t.trim())
-    .filter(Boolean)
-    .slice(0, 3);
+  if (!texto || typeof texto !== "string") return "Desculpe, não entendi.";
 
-  const respostaFinal = frases.join('. ').trim().slice(0, 320);
-  return `${respostaFinal}.`;
+  const linhas = texto
+    .replace(/<\|.*?\|>/g, '')                          // Remove tags da IA
+    .replace(/Programar em Python.*/i, '')              // Remove ruído
+    .replace(/(bom dia|boa tarde|boa noite)[!,.]*/gi, '') // 🔥 Remove saudações embutidas em qualquer lugar
+    .split(/\r?\n/)                                     // Quebra em linhas reais
+    .map(l => l.trim())                                 // Remove espaços
+
+    // Remove "Note:" e observações
+    .filter(l => l && !l.toLowerCase().startsWith("note"))
+
+    // Remove parênteses e ponto final no fim
+    .map(l =>
+      l
+        .replace(/\s*\([^)]*\)/g, '') // Remove (observações)
+        .replace(/\.$/, '')           // Remove ponto final
+    );
+
+  return linhas.slice(0, 5).join('\n'); // Até 5 itens limpos
 }
+
 // pergunta à IA, usa prompt para obter resposta direta e objetiva
 async function perguntarIA(mensagem) {
   const saudacao = saudacaoPorHorario();
@@ -109,7 +117,9 @@ ${mensagem}
         continue;
       }
 
-      return limparResposta(resposta);
+      const saudacaoFormatada = saudacao.charAt(0).toUpperCase() + saudacao.slice(1) + "!";
+      const respostaFinal = `${saudacaoFormatada}\n${limparResposta(resposta)}`;
+      return respostaFinal;
 
     } catch (err) {
       console.warn(`⚠️ Modelo falhou (${modelo}): ${err.response?.status || ''} - ${err.message}`);
