@@ -6,7 +6,6 @@ const HEADERS = {
   Authorization: `Bearer ${HUGGINGFACE_API_TOKEN}`,
   'Content-Type': 'application/json'
 };
-// Tempo máximo de espera para resposta da IA (90 segundos)
 const TIMEOUT = 90000;
 
 const MODELOS = [
@@ -28,7 +27,7 @@ function respostaAgradecimento() {
   return respostas[Math.floor(Math.random() * respostas.length)];
 }
 
-// Função de saudação baseada no horário	
+// ✅ FUNÇÃO DE SAUDAÇÃO
 function saudacaoPorHorario() {
   const hora = parseInt(new Date().toLocaleString('pt-BR', {
     timeZone: 'America/Sao_Paulo',
@@ -58,31 +57,23 @@ function horaAtualFormatada() {
     minute: '2-digit'
   });
 }
-// trata a resposta da IA, removendo excessos e mantendo o foco
+
 function limparResposta(texto) {
-  if (!texto || typeof texto !== "string") return "Desculpe, não entendi.";
+  const frases = texto
+    .replace(/<\|.*?\|>/g, '')
+    .replace(/^bom dia|^boa tarde|^boa noite/i, '')
+    .replace(/Programar em Python.*/i, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+    .split(/[.!?]/)
+    .map(t => t.trim())
+    .filter(Boolean)
+    .slice(0, 5);
 
-  const linhas = texto
-    .replace(/<\|.*?\|>/g, '')                          // Remove tags da IA
-    .replace(/Programar em Python.*/i, '')              // Remove ruído
-    .replace(/(bom dia|boa tarde|boa noite)[!,.]*/gi, '') // 🔥 Remove saudações embutidas em qualquer lugar
-    .split(/\r?\n/)                                     // Quebra em linhas reais
-    .map(l => l.trim())                                 // Remove espaços
-
-    // Remove "Note:" e observações
-    .filter(l => l && !l.toLowerCase().startsWith("note"))
-
-    // Remove parênteses e ponto final no fim
-    .map(l =>
-      l
-        .replace(/\s*\([^)]*\)/g, '') // Remove (observações)
-        .replace(/\.$/, '')           // Remove ponto final
-    );
-
-  return linhas.slice(0, 5).join('\n'); // Até 5 itens limpos
+  const respostaFinal = frases.join('. ').trim().slice(0, 320);
+  return `${respostaFinal}.`;
 }
 
-// pergunta à IA, usa prompt para obter resposta direta e objetiva
 async function perguntarIA(mensagem) {
   const saudacao = saudacaoPorHorario();
   const prompt = `<|system|>
@@ -117,9 +108,7 @@ ${mensagem}
         continue;
       }
 
-      const saudacaoFormatada = saudacao.charAt(0).toUpperCase() + saudacao.slice(1) + "!";
-      const respostaFinal = `${saudacaoFormatada}\n${limparResposta(resposta)}`;
-      return respostaFinal;
+      return limparResposta(resposta);
 
     } catch (err) {
       console.warn(`⚠️ Modelo falhou (${modelo}): ${err.response?.status || ''} - ${err.message}`);
