@@ -1,7 +1,7 @@
 const { makeWASocket, DisconnectReason, useMultiFileAuthState } = require('@whiskeysockets/baileys');
 const { Boom } = require('@hapi/boom');
 const fs = require('fs');
-const { perguntarIA, saudacaoPorHorario, respostaAgradecimento } = require('./services/huggingfaceService');
+const { perguntarIA, saudacaoPorHorario, respostaAgradecimento, respostaComSaudacao } = require('./services/huggingfaceService');
 
 const caminhoSemResposta = './data/perguntasaindasemresp.json';
 const respostasRapidas = require('./data/respostas_rapidas.json');
@@ -119,15 +119,27 @@ async function startBot() {
         historico[from].push(text);
         if (historico[from].length > 6) historico[from].shift();
 
-        const palavrasBloqueadas = ['sexo', 'nudez', 'bomba', 'droga', 'matar', 'suicídio'];
+        //palavras bloqueadas
+        const palavrasBloqueadas = [
+            'fdp', 'pnc', 'vsf', 'vai se fuder', 'vai tomar no cu',
+            'filho da puta', 'desgraçado', 'arrombado', 'corno',
+            'puta', 'puto', 'merda', 'bosta', 'caralho', 'porra',
+            'cacete', 'retardado', 'imbecil', 'idiota', 'escroto',
+            'bomba', 'droga', 'matar', 'suicídio', 'sexo', 'nudez',
+            'vtnc', 'vsfd'  , 'vai se ferrar','cuzão','vagabundo', 
+            'vagabunda', 'viado', 'seu cu', 'seu lixo', 'vai se lascar',
+            'vai se danar', 'vai se foder', 'vai se ferrar',
+        ];
+
+        // Verificação simples e direta
         if (palavrasBloqueadas.some(p => textoNormalizado.includes(p))) {
-            const resposta = "🚫 Desculpe, não posso responder esse tipo de pergunta.";
+            const resposta = "🚫 Vocabulário ofensivo detectado. Por favor seja mais educado...";
             console.log(`❌ Resposta bloqueada para ${from}: ${resposta}`);
             await sock.sendMessage(from, { text: resposta });
             return;
         }
 
-        const padraoSaudacao = /\b(oi|ol[áa]|fala|e[ \-]?a[íi]|salve|bom dia|boa tarde|boa noite|como vai|chat(bot)?|smartbot)\b/i;
+        const padraoSaudacao = /\b(oi|ol[áa]|fala|e[ \-]?a[íi]|salve|bom dia|boa tarde|boa noite|coe|opa|como vai|chat(bot)?|smartbot)\b/i;
 
         if (padraoSaudacao.test(textoNormalizado)) {
             const respostaSaudacao = "👋 Olá! Sou o SmartBot 🤖, um chat interativo 💬 com integração de IA para dúvidas e agendamentos. Como posso te ajudar? Digite (agendar) para agendar um horário";
@@ -326,7 +338,8 @@ async function startBot() {
                         respostaFinal = frases[0] || respostaFinal.split(/[.!?]/)[0].trim();
                     }
                     console.log(`🤖 Resposta da IA para ${from}: ${respostaFinal}`);
-                    await sock.sendMessage(from, { text: respostaFinal });
+                    const respostaSaudada = respostaComSaudacao(respostaFinal);
+                    await sock.sendMessage(from, { text: respostaSaudada });
                     return;
                 } else {
                     const falha = "🤖 Desculpe, a IA não respondeu no momento.";

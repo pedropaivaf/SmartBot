@@ -17,12 +17,12 @@ const MODELOS = [
 // agradecimento aleatório
 function respostaAgradecimento() {
   const respostas = [
-    'De nada! Tire dúvidas ou agende quando quiser!',
-    'Disponha! Estou aqui sempre que precisar.',
-    'Náo há de que! Qualquer coisa, só mandar!',
-    'Fico feliz em ajudar! Estou à disposição.',
-    'Tmj de + meu rei, qualquer coisa da um salve!',
-    'É um prazer ajudar! Me chame quando quiser.'
+    '🎓 De nada! Tire dúvidas ou agende quando quiser!',
+    '🥷 Disponha! Estou aqui sempre que precisar.',
+    '😎 Náo há de que! Qualquer coisa, só mandar!',
+    '😁 Fico feliz em ajudar! Estou à disposição.',
+    '👑 Tmj meu rei, qualquer coisa da um salve!',
+    '🦾 É um prazer ajudar! Qualquer fita so falar.'
   ];
   return respostas[Math.floor(Math.random() * respostas.length)];
 }
@@ -37,6 +37,11 @@ function saudacaoPorHorario() {
   if (hora >= 6 && hora < 12) return "bom dia";
   if (hora >= 12 && hora < 18) return "boa tarde";
   return "boa noite";
+}
+
+function respostaComSaudacao(texto) {
+  const saudacao = saudacaoPorHorario();
+  return `${saudacao.charAt(0).toUpperCase() + saudacao.slice(1)}\n\n${texto}`;
 }
 
 function periodoAtual() {
@@ -121,5 +126,6 @@ ${mensagem}
 module.exports = {
   perguntarIA,
   saudacaoPorHorario,
-  respostaAgradecimento
+  respostaAgradecimento,
+  respostaComSaudacao
 };
