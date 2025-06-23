@@ -8,6 +8,16 @@
     "resposta": "🇧🇷 O Brasil tem 26 estados e 1 Distrito Federal, totalizando 27 unidades federativas."
   },
   {
+    "categoria": "apresentação",
+    "pergunta": [
+      "quem é você",
+      "apresentar o bot",
+      "me fale sobre você",
+      "hora de se apresentar"
+    ],
+    "resposta": "🤖 Olá! Eu sou um chatbot inteligente criado com Node.js, utilizando a biblioteca Baileys para integração com o WhatsApp e modelos de inteligência artificial da plataforma Hugging Face. Fui projetado para entender mensagens, responder de forma natural e automatizar atendimentos com eficiência.\n\n🛠️ Tecnologias Utilizadas:\n• Node.js – Plataforma para executar código JavaScript no backend.\n• Baileys (authBaileys) – Biblioteca para integrar e controlar o WhatsApp Web.\n• Baileys MultiAuth – Mantém a sessão autenticada sem reconectar sempre.\n• Hugging Face API – Utilizada para gerar respostas com IA.\n• Axios – Cliente HTTP para comunicação com a API.\n• dotenv – Protege chaves e configurações do ambiente.\n• JavaScript – Linguagem usada no projeto.\n• JSON – Armazena respostas rápidas estruturadas."
+  },
+  {
     "categoria": "geografia",
     "pergunta": [
       "quantos países existem",

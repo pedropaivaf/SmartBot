@@ -128,7 +128,7 @@ async function startBot() {
             'bomba', 'droga', 'matar', 'suicídio', 'sexo', 'nudez',
             'vtnc', 'vsfd'  , 'vai se ferrar','cuzão','vagabundo', 
             'vagabunda', 'viado', 'seu cu', 'seu lixo', 'vai se lascar',
-            'vai se danar', 'vai se foder', 'vai se ferrar',
+            'vai se danar', 'vai se foder', 'vai se ferrar', 'tnc',
         ];
 
         // Verificação simples e direta

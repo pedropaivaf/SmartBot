@@ -27,7 +27,7 @@ function respostaAgradecimento() {
   return respostas[Math.floor(Math.random() * respostas.length)];
 }
 
-// ✅ FUNÇÃO DE SAUDAÇÃO
+// ✅ FUNÇÃO DE SAUDAÇÃO POR HORÁRIO
 function saudacaoPorHorario() {
   const hora = parseInt(new Date().toLocaleString('pt-BR', {
     timeZone: 'America/Sao_Paulo',
